@@ -1,0 +1,24 @@
+[package]
+name = "upa-do-tenis"
+version = "0.1.0"
+description = "Aplicativo UPA do Tênis"
+authors = ["Equipe UPA"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.75"
+
+[build-dependencies]
+tauri-build = { version = "1", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "1", features = ["shell-open"] }
+thiserror = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "migrate"] }
+validator = { version = "0.18", features = ["derive"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
