@@ -1,61 +1,51 @@
-import { itensMenu } from "@/config/menu";
-import { cn } from "@/lib/utils";
-import { RotasApp } from "@/routes";
-import { NavLink, useLocation } from "react-router-dom";
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import { invoke } from "@tauri-apps/api/core";
+import "./App.css";
 
-export default function App() {
-  const location = useLocation();
-  const estaNaPaginaUsuarios = location.pathname.startsWith("/usuarios");
+function App() {
+  const [greetMsg, setGreetMsg] = useState("");
+  const [name, setName] = useState("");
+
+  async function greet() {
+    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+    setGreetMsg(await invoke("greet", { name }));
+  }
 
   return (
-    <div className="min-h-screen bg-muted/40">
-      <div className="mx-auto grid min-h-screen w-full max-w-7xl md:grid-cols-[250px_1fr]">
-        <aside className="border-r bg-card px-4 py-6">
-          <div className="mb-8">
-            <p className="text-sm font-medium text-muted-foreground">UPA do Tênis</p>
-            <h1 className="text-xl font-semibold">
-              {estaNaPaginaUsuarios ? "Usuários" : "Dashboard"}
-            </h1>
-          </div>
+    <main className="container">
+      <h1>Welcome to Tauri + React</h1>
 
-          <nav aria-label="Menu lateral principal" className="space-y-2">
-            {itensMenu.map((item) => {
-              if (!item.href) {
-                return (
-                  <span
-                    key={item.label}
-                    className="inline-flex h-10 w-full cursor-not-allowed items-center justify-start rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-muted-foreground opacity-60"
-                  >
-                    {item.label}
-                  </span>
-                );
-              }
-
-              return (
-                <NavLink
-                  key={item.label}
-                  to={item.href}
-                  end={item.href === "/"}
-                  className={({ isActive }) =>
-                    cn(
-                      "inline-flex h-10 w-full items-center justify-start rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                        : "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground"
-                    )
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              );
-            })}
-          </nav>
-        </aside>
-
-        <main className="p-4 md:p-8">
-          <RotasApp />
-        </main>
+      <div className="row">
+        <a href="https://vite.dev" target="_blank">
+          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
+        </a>
+        <a href="https://tauri.app" target="_blank">
+          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
       </div>
-    </div>
+      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+
+      <form
+        className="row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          greet();
+        }}
+      >
+        <input
+          id="greet-input"
+          onChange={(e) => setName(e.currentTarget.value)}
+          placeholder="Enter a name..."
+        />
+        <button type="submit">Greet</button>
+      </form>
+      <p>{greetMsg}</p>
+    </main>
   );
 }
+
+export default App;
