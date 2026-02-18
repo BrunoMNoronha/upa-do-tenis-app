@@ -19,7 +19,10 @@
     },
     "bundle": {
       "active": false,
-      "identifier": "br.com.upa.tenis"
+      "identifier": "br.com.upa.tenis",
+      "icon": [
+        "icons/icon.ico"
+      ]
     },
     "windows": [
       {
