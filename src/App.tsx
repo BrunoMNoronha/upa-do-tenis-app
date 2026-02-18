@@ -1,61 +1,81 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+const itensMenu = [
+  "Visão geral",
+  "Atendimentos",
+  "Pacientes",
+  "Agenda",
+  "Financeiro",
+  "Relatórios",
+];
+
+const indicadores = [
+  { titulo: "Atendimentos hoje", valor: "24", detalhe: "+12% vs ontem" },
+  { titulo: "Em espera", valor: "5", detalhe: "Tempo médio: 8 min" },
+  { titulo: "Finalizados", valor: "19", detalhe: "Taxa de conclusão: 91%" },
+];
 
 export default function App() {
   return (
-    <main className="mx-auto mt-16 w-full max-w-2xl px-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Bem-vindo ao UPA do Tênis</CardTitle>
-          <CardDescription>
-            Centralize atendimentos e acompanhe os fluxos principais da sua operação de forma simples,
-            rápida e organizada.
-          </CardDescription>
-        </CardHeader>
+    <div className="min-h-screen bg-muted/40">
+      <div className="mx-auto grid min-h-screen w-full max-w-7xl md:grid-cols-[250px_1fr]">
+        <aside className="border-r bg-card px-4 py-6">
+          <div className="mb-8">
+            <p className="text-sm font-medium text-muted-foreground">UPA do Tênis</p>
+            <h1 className="text-xl font-semibold">Dashboard</h1>
+          </div>
 
-        <CardContent>
-          <form id="formulario-acesso" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email-acesso">E-mail para receber atualizações</Label>
-              <Input
-                id="email-acesso"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="seuemail@clinica.com.br"
-                aria-describedby="mensagem-sucesso mensagem-erro"
-              />
-            </div>
+          <nav aria-label="Menu lateral principal" className="space-y-2">
+            {itensMenu.map((item, indice) => (
+              <Button
+                key={item}
+                variant={indice === 0 ? "default" : "outline"}
+                className="w-full justify-start"
+              >
+                {item}
+              </Button>
+            ))}
+          </nav>
+        </aside>
 
-            <Alert id="mensagem-sucesso" variant="success">
-              <AlertTitle>Acesso liberado</AlertTitle>
-              <AlertDescription>
-                <p>Seu cadastro está ativo e pronto para iniciar os atendimentos.</p>
-              </AlertDescription>
-            </Alert>
+        <main className="space-y-6 p-6">
+          <header className="space-y-1">
+            <h2 className="text-2xl font-semibold">Resumo operacional</h2>
+            <p className="text-sm text-muted-foreground">
+              Acompanhe os principais números da clínica em tempo real.
+            </p>
+          </header>
 
-            <Alert id="mensagem-erro" variant="destructive">
-              <AlertTitle>Atenção ao preenchimento</AlertTitle>
-              <AlertDescription>
-                <p>Verifique se o e-mail foi informado no formato correto antes de continuar.</p>
-              </AlertDescription>
-            </Alert>
-          </form>
-        </CardContent>
+          <section className="grid gap-4 md:grid-cols-3">
+            {indicadores.map((indicador) => (
+              <Card key={indicador.titulo}>
+                <CardHeader className="pb-2">
+                  <CardDescription>{indicador.titulo}</CardDescription>
+                  <CardTitle className="text-3xl">{indicador.valor}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">{indicador.detalhe}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </section>
 
-        <CardFooter className="gap-3">
-          <Button type="submit" form="formulario-acesso">
-            Começar
-          </Button>
-          <Button variant="outline">Cancelar</Button>
-          <Button variant="destructive" size="sm">
-            Encerrar
-          </Button>
-        </CardFooter>
-      </Card>
-    </main>
+          <Card>
+            <CardHeader>
+              <CardTitle>Próximas ações</CardTitle>
+              <CardDescription>
+                Template inicial para evolução do painel com novos módulos.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>• Confirmar equipe disponível para o próximo turno.</p>
+              <p>• Validar atendimentos pendentes de triagem.</p>
+              <p>• Exportar resumo diário para auditoria.</p>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    </div>
   );
 }
