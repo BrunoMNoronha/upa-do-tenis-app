@@ -1,6 +1,6 @@
 # UPA do Tênis - Base Inicial
 
-Base mínima com **Tauri + Rust**, **React + TypeScript**, **Tailwind + shadcn/ui** e persistência **SQLite com SQLx**.
+Base com **Tauri + Rust**, **React + TypeScript**, **Tailwind + shadcn/ui** e persistência **SQLite com SQLx**.
 
 ## Pré-requisitos
 
@@ -37,42 +37,33 @@ npm run dev
 npm run tauri dev
 ```
 
-## Fluxo vertical implementado
+## Fluxo integrado frontend ↔ backend
 
-### Fluxo principal atual: cadastro de usuário
+A tela `src/App.tsx` já está integrada ao backend via serviço `src/services/usuarios.ts`, consumindo comandos Tauri com `invoke`.
 
-Comando Tauri `cadastrar_usuario`:
+### Contrato de usuário usado na UI
 
-- Recebe os campos `nome`, `login` e `senha`.
-- Valida dados de entrada (`nome`, `login` e `senha`) antes da persistência.
-- Normaliza `nome` (trim) e `login` (trim + lowercase).
-- Gera hash de senha com Argon2 e salva apenas `senha_hash` no banco.
-- Usa insert parametrizado com SQLx e retorna mensagem segura de sucesso/erro.
+- Entrada no formulário: `nome`, `login`, `senha`.
+- Retorno para listagem: `id`, `nome`, `login`, `criado_em`.
+- Campos como `email` e `cargo` não são usados como fonte primária enquanto não houver suporte no backend.
 
-### Fluxo adicional suportado: cadastro de paciente
+### Comandos disponíveis no backend (`src-tauri/src/main.rs`)
 
-Comando Tauri `cadastrar_paciente`:
+- `cadastrar_usuario(nome, login, senha)`
+- `listar_usuarios()`
+- `atualizar_usuario(id, nome, login, senha?)`
+- `remover_usuario(id)`
+- `cadastrar_paciente(nome)`
 
-- Finalidade: registrar paciente com o campo `nome`.
-- Valida tamanho de `nome` antes de persistir.
-- Mantém o mesmo padrão de erro seguro no retorno.
+## Segurança aplicada
 
-## Exemplos de uso (interface atual)
+- Senhas não são retornadas ao frontend.
+- Apenas `senha_hash` é persistido no banco.
+- Hash de senha com Argon2 + salt aleatório.
+- Validação de entrada no frontend e backend.
+- Erros retornados de forma segura, sem expor detalhes sensíveis do banco.
 
-A tela principal em `src/App.tsx` está no caminho de entrada atual da interface e exibe:
+## Observações
 
-- título “Bem-vindo ao UPA do Tênis”;
-- descrição institucional do sistema;
-- botão “Começar”.
-
-> Observação: no frontend atual, essa tela ainda não contém formulário de cadastro. Os comandos `cadastrar_usuario` e `cadastrar_paciente` estão disponíveis no backend Tauri para integração na próxima etapa de UI.
-
-## Revisão rápida de consistência (backend x frontend)
-
-- O backend usa os termos **usuário** (`cadastrar_usuario`) e **paciente** (`cadastrar_paciente`), mantendo nomenclatura de domínio explícita.
-- O frontend, por enquanto, está em modo de landing page (sem formulário), então ainda não expõe esses termos em componentes de entrada.
-- Recomendação de consistência para próximas telas: usar os rótulos de campo `nome`, `login` e `senha` no fluxo de usuário, alinhados ao contrato do backend.
-
-## Próximo passo
-
-Após validar esta base mínima, solicitar uma nova rodada de QA focada em segurança, qualidade e aderência ao stack.
+- O CRUD de usuários na interface funciona somente no app Tauri, pois depende de `invoke`.
+- Em modo web (`npm run dev`), os comandos Tauri não estarão disponíveis.

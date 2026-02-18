@@ -4,18 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-type Usuario = {
-  id: string;
-  nome: string;
-  email: string;
-  cargo: string;
-};
+import {
+  atualizarUsuario,
+  cadastrarUsuario,
+  listarUsuarios,
+  removerUsuario as removerUsuarioServico,
+  type UsuarioPublico,
+} from "@/services/usuarios";
 
 type FormularioUsuario = {
   nome: string;
-  email: string;
-  cargo: string;
+  login: string;
+  senha: string;
 };
 
 type Mensagem = {
@@ -40,71 +40,50 @@ const indicadores = [
   { titulo: "Finalizados", valor: "19", detalhe: "Taxa de conclusão: 91%" },
 ];
 
-const CHAVE_USUARIOS_STORAGE = "upa-usuarios";
-const formularioInicial: FormularioUsuario = { nome: "", email: "", cargo: "" };
+const formularioInicial: FormularioUsuario = { nome: "", login: "", senha: "" };
 
 function normalizarFormulario(dados: FormularioUsuario): FormularioUsuario {
   return {
     nome: dados.nome.trim(),
-    email: dados.email.trim().toLowerCase(),
-    cargo: dados.cargo.trim(),
+    login: dados.login.trim().toLowerCase(),
+    senha: dados.senha.trim(),
   };
 }
 
-function validarFormulario(dados: FormularioUsuario): string | null {
-  if (!dados.nome || !dados.email || !dados.cargo) {
-    return "Preencha todos os campos obrigatórios.";
+function validarFormulario(dados: FormularioUsuario, emEdicao: boolean): string | null {
+  if (!dados.nome || !dados.login) {
+    return "Preencha nome e login.";
   }
 
-  const padraoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!padraoEmail.test(dados.email)) {
-    return "Informe um e-mail válido.";
+  if (!emEdicao && !dados.senha) {
+    return "Senha é obrigatória para cadastro.";
   }
 
   if (dados.nome.length < 3) {
     return "O nome deve ter ao menos 3 caracteres.";
   }
 
+  if (!/^[a-zA-Z0-9._-]+$/.test(dados.login) || dados.login.length < 4) {
+    return "Informe um login válido com ao menos 4 caracteres.";
+  }
+
+  if (dados.senha && (dados.senha.length < 8 || dados.senha.length > 64)) {
+    return "A senha deve ter entre 8 e 64 caracteres.";
+  }
+
   return null;
 }
 
-function gerarIdUsuario() {
-  return `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-}
-
-function obterUsuariosStorage(): Usuario[] {
-  try {
-    const dados = window.localStorage.getItem(CHAVE_USUARIOS_STORAGE);
-    if (!dados) {
-      return [];
-    }
-
-    const json = JSON.parse(dados);
-    if (!Array.isArray(json)) {
-      return [];
-    }
-
-    return json
-      .filter(
-        (item): item is Usuario =>
-          typeof item?.id === "string" &&
-          typeof item?.nome === "string" &&
-          typeof item?.email === "string" &&
-          typeof item?.cargo === "string"
-      )
-      .map((item) => ({
-        id: item.id,
-        nome: item.nome.trim(),
-        email: item.email.trim().toLowerCase(),
-        cargo: item.cargo.trim(),
-      }));
-  } catch {
-    return [];
+function mapearErro(erro: unknown): string {
+  if (typeof erro === "string") {
+    return erro;
   }
-}
 
-function persistirUsuariosStorage(usuarios: Usuario[]) {
-  window.localStorage.setItem(CHAVE_USUARIOS_STORAGE, JSON.stringify(usuarios));
+  if (erro instanceof Error) {
+    return erro.message;
+  }
+
+  return "Não foi possível concluir a operação.";
 }
 
 function LayoutDashboard() {
@@ -147,13 +126,30 @@ function LayoutDashboard() {
 }
 
 function LayoutCrudUsuarios() {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [usuarios, setUsuarios] = useState<UsuarioPublico[]>([]);
   const [formulario, setFormulario] = useState<FormularioUsuario>(formularioInicial);
-  const [usuarioEdicaoId, setUsuarioEdicaoId] = useState<string | null>(null);
+  const [usuarioEdicaoId, setUsuarioEdicaoId] = useState<number | null>(null);
   const [mensagem, setMensagem] = useState<Mensagem | null>(null);
+  const [carregando, setCarregando] = useState(false);
+
+  const carregarUsuarios = async () => {
+    try {
+      setCarregando(true);
+      const usuariosCarregados = await listarUsuarios();
+      setUsuarios(usuariosCarregados);
+    } catch (erro) {
+      setMensagem({
+        tipo: "destructive",
+        titulo: "Falha ao carregar usuários",
+        descricao: mapearErro(erro),
+      });
+    } finally {
+      setCarregando(false);
+    }
+  };
 
   useEffect(() => {
-    setUsuarios(obterUsuariosStorage());
+    void carregarUsuarios();
   }, []);
 
   const tituloFormulario = useMemo(
@@ -174,61 +170,55 @@ function LayoutCrudUsuarios() {
     setMensagem({ tipo, titulo, descricao });
   }
 
-  function handleSalvarUsuario(evento: FormEvent<HTMLFormElement>) {
+  async function handleSalvarUsuario(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
     const dadosNormalizados = normalizarFormulario(formulario);
-    const erro = validarFormulario(dadosNormalizados);
+    const erro = validarFormulario(dadosNormalizados, Boolean(usuarioEdicaoId));
 
     if (erro) {
       exibirMensagem("destructive", "Não foi possível salvar", erro);
       return;
     }
 
-    const existeEmailDuplicado = usuarios.some(
-      (usuario) =>
-        usuario.email === dadosNormalizados.email &&
-        (usuarioEdicaoId ? usuario.id !== usuarioEdicaoId : true)
-    );
+    try {
+      if (usuarioEdicaoId) {
+        await atualizarUsuario({
+          id: usuarioEdicaoId,
+          nome: dadosNormalizados.nome,
+          login: dadosNormalizados.login,
+          senha: dadosNormalizados.senha || undefined,
+        });
+        exibirMensagem("success", "Sucesso", "Usuário atualizado com sucesso.");
+      } else {
+        await cadastrarUsuario(dadosNormalizados);
+        exibirMensagem("success", "Sucesso", "Usuário cadastrado com sucesso.");
+      }
 
-    if (existeEmailDuplicado) {
-      exibirMensagem("destructive", "Não foi possível salvar", "Já existe usuário com este e-mail.");
-      return;
+      limparFormulario();
+      await carregarUsuarios();
+    } catch (erroBackend) {
+      exibirMensagem("destructive", "Não foi possível salvar", mapearErro(erroBackend));
     }
-
-    const proximosUsuarios = usuarioEdicaoId
-      ? usuarios.map((usuario) =>
-          usuario.id === usuarioEdicaoId ? { ...usuario, ...dadosNormalizados } : usuario
-        )
-      : [...usuarios, { id: gerarIdUsuario(), ...dadosNormalizados }];
-
-    setUsuarios(proximosUsuarios);
-    persistirUsuariosStorage(proximosUsuarios);
-    limparFormulario();
-
-    exibirMensagem(
-      "success",
-      "Sucesso",
-      usuarioEdicaoId ? "Usuário atualizado com sucesso." : "Usuário cadastrado com sucesso."
-    );
   }
 
-  function iniciarEdicao(usuario: Usuario) {
+  function iniciarEdicao(usuario: UsuarioPublico) {
     setUsuarioEdicaoId(usuario.id);
-    setFormulario({ nome: usuario.nome, email: usuario.email, cargo: usuario.cargo });
+    setFormulario({ nome: usuario.nome, login: usuario.login, senha: "" });
     setMensagem(null);
   }
 
-  function removerUsuario(id: string) {
-    const proximosUsuarios = usuarios.filter((usuario) => usuario.id !== id);
-    setUsuarios(proximosUsuarios);
-    persistirUsuariosStorage(proximosUsuarios);
-
-    if (usuarioEdicaoId === id) {
-      limparFormulario();
+  async function removerUsuario(id: number) {
+    try {
+      await removerUsuarioServico(id);
+      if (usuarioEdicaoId === id) {
+        limparFormulario();
+      }
+      exibirMensagem("success", "Usuário removido", "O usuário foi removido da lista.");
+      await carregarUsuarios();
+    } catch (erro) {
+      exibirMensagem("destructive", "Falha ao remover", mapearErro(erro));
     }
-
-    exibirMensagem("success", "Usuário removido", "O usuário foi removido da lista.");
   }
 
   return (
@@ -250,7 +240,7 @@ function LayoutCrudUsuarios() {
       <Card>
         <CardHeader>
           <CardTitle>{tituloFormulario}</CardTitle>
-          <CardDescription>Todos os campos são obrigatórios.</CardDescription>
+          <CardDescription>Campos principais: nome, login e senha.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSalvarUsuario} className="grid gap-4 md:grid-cols-2">
@@ -265,24 +255,26 @@ function LayoutCrudUsuarios() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="login">Login</Label>
               <Input
-                id="email"
-                type="email"
-                value={formulario.email}
-                onChange={(evento) => atualizarCampo("email", evento.target.value)}
-                maxLength={120}
+                id="login"
+                value={formulario.login}
+                onChange={(evento) => atualizarCampo("login", evento.target.value)}
+                maxLength={32}
                 required
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="cargo">Cargo</Label>
+              <Label htmlFor="senha">
+                Senha {usuarioEdicaoId ? "(opcional para manter a atual)" : ""}
+              </Label>
               <Input
-                id="cargo"
-                value={formulario.cargo}
-                onChange={(evento) => atualizarCampo("cargo", evento.target.value)}
-                maxLength={80}
-                required
+                id="senha"
+                type="password"
+                value={formulario.senha}
+                onChange={(evento) => atualizarCampo("senha", evento.target.value)}
+                maxLength={64}
+                required={!usuarioEdicaoId}
               />
             </div>
             <div className="flex gap-2 md:col-span-2">
@@ -299,9 +291,11 @@ function LayoutCrudUsuarios() {
         <CardHeader>
           <CardTitle>Usuários cadastrados</CardTitle>
           <CardDescription>
-            {usuarios.length === 0
-              ? "Nenhum usuário cadastrado até o momento."
-              : `${usuarios.length} usuário(s) encontrado(s).`}
+            {carregando
+              ? "Carregando usuários..."
+              : usuarios.length === 0
+                ? "Nenhum usuário cadastrado até o momento."
+                : `${usuarios.length} usuário(s) encontrado(s).`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -316,8 +310,8 @@ function LayoutCrudUsuarios() {
                 >
                   <div>
                     <p className="font-medium">{usuario.nome}</p>
-                    <p className="text-sm text-muted-foreground">{usuario.email}</p>
-                    <p className="text-sm text-muted-foreground">Cargo: {usuario.cargo}</p>
+                    <p className="text-sm text-muted-foreground">Login: {usuario.login}</p>
+                    <p className="text-sm text-muted-foreground">Criado em: {usuario.criado_em}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" onClick={() => iniciarEdicao(usuario)}>
