@@ -6,6 +6,7 @@ use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqlitePool};
+use std::sync::LazyLock;
 use std::sync::Arc;
 use tauri::State;
 use validator::Validate;
@@ -39,9 +40,8 @@ struct AtualizarUsuarioInput {
     senha: Option<String>,
 }
 
-lazy_static::lazy_static! {
-    static ref LOGIN_REGEX: regex::Regex = regex::Regex::new(r"^[a-zA-Z0-9._-]+$").expect("regex de login inválida");
-}
+static LOGIN_REGEX: LazyLock<regex::Regex> =
+    LazyLock::new(|| regex::Regex::new(r"^[a-zA-Z0-9._-]+$").expect("regex de login inválida"));
 
 #[derive(Serialize)]
 struct ComandoOk {
