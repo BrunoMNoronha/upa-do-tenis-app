@@ -2,12 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const itensMenu = [
-  "Visão geral",
-  "Atendimentos",
-  "Pacientes",
-  "Agenda",
-  "Financeiro",
-  "Relatórios",
+  { label: "Visão geral" },
+  { label: "Atendimentos" },
+  { label: "Pacientes" },
+  { label: "Agenda" },
+  { label: "Financeiro" },
+  { label: "Relatórios" },
+  { label: "CRUD de usuários", href: "/usuarios" },
 ];
 
 const indicadores = [
@@ -29,11 +30,16 @@ export default function App() {
           <nav aria-label="Menu lateral principal" className="space-y-2">
             {itensMenu.map((item, indice) => (
               <Button
-                key={item}
+                key={item.label}
                 variant={indice === 0 ? "default" : "outline"}
                 className="w-full justify-start"
+                onClick={() => {
+                  if (item.href) {
+                    window.location.href = item.href;
+                  }
+                }}
               >
-                {item}
+                {item.label}
               </Button>
             ))}
           </nav>
