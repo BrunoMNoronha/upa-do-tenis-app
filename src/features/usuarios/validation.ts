@@ -9,8 +9,8 @@ export function normalizarFormulario(dados: FormularioUsuario): FormularioUsuari
 }
 
 export function validarFormulario(dados: FormularioUsuario, emEdicao: boolean): string | null {
-  if (!dados.nome || !dados.login) {
-    return "Preencha nome e login.";
+  if (!dados.nome) {
+    return "Preencha o nome.";
   }
 
   if (!emEdicao && !dados.senha) {
@@ -19,10 +19,6 @@ export function validarFormulario(dados: FormularioUsuario, emEdicao: boolean): 
 
   if (dados.nome.length < 3) {
     return "O nome deve ter ao menos 3 caracteres.";
-  }
-
-  if (!/^[a-zA-Z0-9._-]+$/.test(dados.login) || dados.login.length < 4) {
-    return "Informe um login válido com ao menos 4 caracteres.";
   }
 
   if (dados.senha && (dados.senha.length < 8 || dados.senha.length > 64)) {
