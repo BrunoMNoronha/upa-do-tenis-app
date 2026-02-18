@@ -53,7 +53,6 @@ A tela `src/App.tsx` já está integrada ao backend via serviço `src/services/u
 - `listar_usuarios()`
 - `atualizar_usuario(id, nome, login, senha?)`
 - `remover_usuario(id)`
-- `cadastrar_paciente(nome)`
 
 ## Segurança aplicada
 
