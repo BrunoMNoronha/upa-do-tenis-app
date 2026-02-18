@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS pacientes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);

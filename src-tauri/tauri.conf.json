@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.tauri.app/config/1",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "UPA do Tênis",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": false,
+      "identifier": "br.com.upa.tenis"
+    },
+    "windows": [
+      {
+        "title": "UPA do Tênis",
+        "width": 900,
+        "height": 700,
+        "resizable": true
+      }
+    ]
+  }
+}
