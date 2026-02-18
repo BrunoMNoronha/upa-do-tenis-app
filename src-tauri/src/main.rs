@@ -16,12 +16,6 @@ struct AppState {
 }
 
 #[derive(Debug, Validate)]
-struct NovoPacienteInput {
-    #[validate(length(min = 3, max = 80))]
-    nome: String,
-}
-
-#[derive(Debug, Validate)]
 struct NovoUsuarioInput {
     #[validate(length(min = 3, max = 80))]
     nome: String,
@@ -111,29 +105,6 @@ async fn gerar_hash_senha(senha: &str) -> Result<String, AppError> {
         .hash_password(senha.as_bytes(), &salt)
         .map(|hash| hash.to_string())
         .map_err(|_| AppError::Credenciais)
-}
-
-#[tauri::command]
-async fn cadastrar_paciente(
-    state: State<'_, AppState>,
-    nome: String,
-) -> Result<ComandoOk, AppError> {
-    let input = NovoPacienteInput {
-        nome: nome.trim().to_string(),
-    };
-
-    input.validate()?;
-
-    let resultado = sqlx::query("INSERT INTO pacientes (nome) VALUES (?1)")
-        .bind(&input.nome)
-        .execute(state.db_pool.as_ref())
-        .await
-        .map_err(mapear_erro_sql)?;
-
-    Ok(ComandoOk {
-        mensagem: "Paciente cadastrado com sucesso.".to_string(),
-        id: resultado.last_insert_rowid(),
-    })
 }
 
 #[tauri::command]
@@ -267,7 +238,6 @@ async fn main() {
             db_pool: Arc::new(pool),
         })
         .invoke_handler(tauri::generate_handler![
-            cadastrar_paciente,
             cadastrar_usuario,
             listar_usuarios,
             atualizar_usuario,

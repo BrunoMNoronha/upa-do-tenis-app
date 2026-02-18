@@ -6,7 +6,6 @@ export type ItemMenu = {
 export const itensMenu: ItemMenu[] = [
   { label: "Visão geral", href: "/" },
   { label: "Atendimentos" },
-  { label: "Pacientes" },
   { label: "Agenda" },
   { label: "Financeiro" },
   { label: "Relatórios" },
