@@ -66,3 +66,28 @@ A tela `src/App.tsx` já está integrada ao backend via serviço `src/services/u
 
 - O CRUD de usuários na interface funciona somente no app Tauri, pois depende de `invoke`.
 - Em modo web (`npm run dev`), os comandos Tauri não estarão disponíveis.
+
+## Banco de dados (SQLite)
+
+- O local esperado do banco é definido por `UPA_DB_URL` no `.env`.
+- Exemplo padrão (presente no `.env.example`): `sqlite://./src-tauri/data/upa.db`.
+- Se `UPA_DB_URL` não estiver definido, o app usa esse mesmo valor padrão.
+
+### Reset de ambiente local (somente desenvolvimento)
+
+> ⚠️ **Atenção:** os passos abaixo são **apenas para desenvolvimento**. Não execute em produção.
+
+1. Pare a aplicação (`npm run tauri dev`).
+2. Remova o arquivo `.db` configurado em `UPA_DB_URL`.
+   - Exemplo com valor padrão:
+
+```bash
+rm -f ./src-tauri/data/upa.db
+```
+
+3. Inicie novamente o app (`npm run tauri dev`) para recriar o banco.
+
+### Aplicação das migrations
+
+- As migrations em `src-tauri/migrations/` são aplicadas automaticamente na inicialização do backend Tauri.
+- Isso ocorre em `src-tauri/src/db/mod.rs`, na função `init_pool()`, via `sqlx::migrate!("./migrations").run(&pool).await?`.
