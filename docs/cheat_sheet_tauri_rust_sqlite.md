@@ -220,21 +220,86 @@ Padrões:
 
 ---
 
-# 5. Checklist de Verificação (Build)
+Para garantir que a arquitetura permaneça limpa e previsível, utilize a referência abaixo sempre que criar uma nova entidade.
 
-- Migration: O .sql está na pasta correta?
-- mod.rs: O módulo está declarado como pub?
-- Handler: O comando foi adicionado ao generate_handler![]?
-- React: O nome do invoke é idêntico ao comando Rust?
-- Query Check: O projeto compila?
+Backend (Rust)
 
----
+Arquivo
 
-# Por que esta arquitetura é moderna?
+Caminho Relativo
 
-Performance Nativa: SQLx executa na thread do sistema, sem bridge JS.
+Responsabilidade
 
-Compile-Time Safety: Queries inválidas impedem compilação.
+Migration
 
-Atomicidade: Migrations garantem estrutura consistente em todas instalações.
+src-tauri/migrations/
 
+SQL puro para criar/alterar tabelas. O nome deve começar com timestamp.
+
+Módulo Root
+
+src-tauri/src/modules/mod.rs
+
+Registra os novos módulos no sistema (ex: pub mod clientes;).
+
+Mod Local
+
+src-tauri/src/modules/{entidade}/mod.rs
+
+Expõe os arquivos da pasta para o Root (ex: pub mod commands;).
+
+Model
+
+src-tauri/src/modules/{entidade}/model.rs
+
+Structs Rust que espelham as tabelas e implementam Serialize.
+
+Repository
+
+src-tauri/src/modules/{entidade}/repository.rs
+
+Queries SQLx (CRUD). Único lugar onde SQL é permitido.
+
+Commands
+
+src-tauri/src/modules/{entidade}/commands.rs
+
+Funções públicas chamadas pelo Frontend. Tratam erros e convertem dados.
+
+Main
+
+src-tauri/src/main.rs
+
+Onde você registra os comandos no invoke_handler na inicialização.
+
+Frontend (React / TypeScript)
+
+Arquivo
+
+Caminho Relativo
+
+Responsabilidade
+
+Types
+
+src/modules/{entidade}/types.ts
+
+Interfaces TypeScript (espelho do Model Rust).
+
+Service
+
+src/modules/{entidade}/service.ts
+
+Arquivo que faz as chamadas invoke para o Rust.
+
+UI Page
+
+src/modules/{entidade}/Page.tsx
+
+Tela principal / listagem dos dados.
+
+UI Form
+
+src/modules/{entidade}/components/Form.tsx
+
+Componente isolado de formulário para criação/edição.
