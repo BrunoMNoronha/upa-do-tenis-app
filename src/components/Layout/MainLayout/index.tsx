@@ -1,23 +1,21 @@
-// Arquivo: src/components/Layout/MainLayout/index.tsx
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Sidebar } from '../Sidebar';
 import { Header } from '../Header';
+import { Sidebar } from '../Sidebar';
 import styles from './styles.module.css';
 
 export const MainLayout: React.FC = () => {
   return (
-    <div className={styles.wrapper}>
-      {/* Sidebar Fixa */}
-      <Sidebar />
-      
-      {/* Área de Conteúdo (Header + Main Scrollável) */}
-      <div className={styles.contentArea}>
+    <div className={styles.layoutWrapper}>
+      <div className={styles.sidebarWrapper}>
+        <Sidebar />
+      </div>
+
+      <div className={styles.contentWrapper}>
         <Header />
-        
-        <main className={styles.main}>
-          <div className={styles.pageContainer}>
-            {/* O Outlet renderiza a página filha da rota atual */}
+
+        <main className={styles.mainContent}>
+          <div className={styles.contentContainer}>
             <Outlet />
           </div>
         </main>

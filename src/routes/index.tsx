@@ -1,20 +1,15 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { MainLayout } from '../components/Layout/MainLayout';
 import { Dashboard } from '../pages/Dashboard';
+import { Usuarios } from '../pages/Usuarios';
 
 export const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rota Pai com o Layout Principal */}
         <Route path="/" element={<MainLayout />}>
-          
-          {/* Rota Index (Home) renderiza o Dashboard */}
           <Route index element={<Dashboard />} />
-          
-          {/* Adicione outras rotas aqui no futuro, exemplo: */}
-          {/* <Route path="users" element={<UsersPage />} /> */}
-          
+          <Route path="usuarios" element={<Usuarios />} />
         </Route>
       </Routes>
     </BrowserRouter>
