@@ -1,0 +1,11 @@
+.controlsContainer {
+    @apply flex items-center h-16 border-l border-slate-100;
+}
+
+.controlBtn {
+    @apply h-full w-12 flex items-center justify-center text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600;
+}
+
+.closeBtn {
+    @apply h-full w-12 flex items-center justify-center text-slate-400 transition-colors hover:bg-red-500 hover:text-white;
+}

@@ -1,0 +1,21 @@
+/* Arquivo: src/pages/Dashboard/styles.module.css */
+.header {
+    @apply mb-6;
+}
+
+.title {
+    @apply text-2xl font-bold text-slate-800;
+}
+
+.subtitle {
+    @apply text-slate-500 mt-1;
+}
+
+/* Área placeholder para indicar onde o conteúdo ficará */
+.emptyContainer {
+    @apply w-full h-[60vh] flex items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50;
+}
+
+.emptyContent {
+    @apply text-center text-slate-400 font-medium;
+}
